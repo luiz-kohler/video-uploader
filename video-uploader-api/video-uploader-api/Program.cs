@@ -1,6 +1,11 @@
+using video_uploader_api.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddMinIOConfiguration(builder.Configuration);
+builder.Services.ConfigureMinIOClient(builder.Configuration.GetSection("MinIO").Get<MinIOVariables>()!);
+builder.Services.AddIObjectStorageService();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
