@@ -23,11 +23,5 @@ namespace video_uploader_api.Controllers
 
             return Accepted(new { fileName });
         }
-
-        [HttpPost("check-status")]
-        public IActionResult CheckStatus()
-        {
-            return Ok();
-        }
     }
 }
