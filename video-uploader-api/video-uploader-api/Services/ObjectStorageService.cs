@@ -23,6 +23,8 @@ namespace video_uploader_api.Services
 
         public async Task<string> Upload(IFormFile file)
         {
+            var uniqueName = Guid.NewGuid().ToString();
+
             var bucketExists = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(_minioConfig.Bucket));
 
             if (!bucketExists)
@@ -32,7 +34,7 @@ namespace video_uploader_api.Services
             var response = await _minioClient.PutObjectAsync(
                 new PutObjectArgs()
                 .WithBucket(_minioConfig.Bucket)
-                .WithObject(file.FileName)
+                .WithObject(uniqueName)
                 .WithStreamData(stream)
                 .WithObjectSize(file.Length)
                 .WithContentType(file.ContentType)
