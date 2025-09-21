@@ -3,13 +3,12 @@ version: '3.8'
 services:
   video-uploader-api:
     build:
-      context: .
+      context: ./video-uploader-api
       dockerfile: dockerfile
     container_name: video-uploader-api
     restart: unless-stopped
     ports:
-      - "8080:80" 
-      - "8081:443" 
+      - "5000:8080" 
     env_file:
       - local.env 
     environment:
