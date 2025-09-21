@@ -24,16 +24,16 @@ namespace video_uploader_api.Services
         public async Task<string> Upload(IFormFile file)
         {
             var uniqueName = Guid.NewGuid().ToString();
-
-            var bucketExists = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(_minioConfig.Bucket));
+            
+            var bucketExists = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(_minioConfig.BucketName));
 
             if (!bucketExists)
-                await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(_minioConfig.Bucket));
+                await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(_minioConfig.BucketName));
 
             using var stream = file.OpenReadStream();
             var response = await _minioClient.PutObjectAsync(
                 new PutObjectArgs()
-                .WithBucket(_minioConfig.Bucket)
+                .WithBucket(_minioConfig.BucketName)
                 .WithObject(uniqueName)
                 .WithStreamData(stream)
                 .WithObjectSize(file.Length)
@@ -46,7 +46,7 @@ namespace video_uploader_api.Services
 
     public class MinIOVariables
     {
-        public required string Bucket { get; set; }
+        public required string BucketName { get; set; }
         public required string Endpoint { get; set; }
         public required string AccessKey { get; set; }
         public required string SecretKey { get; set; }
