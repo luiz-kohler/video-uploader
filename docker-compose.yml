@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  video-uploader-api:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: video-uploader-api
+    restart: unless-stopped
+    ports:
+      - "8080:80" 
+      - "8081:443" 
+    env_file:
+      - local.env 
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT} 
+      - MinIO__Endpoint=${MINIO_ENDPOINT}
+      - MinIO__AccessKey=${MINIO_ACCESS_KEY}
+      - MinIO__SecretKey=${MINIO_SECRET_KEY}
+      - MinIO__BucketName=${MINIO_BUCKET_NAME}
+      - MinIO__WithSSL=${MINIO_WITH_SSL}
+    depends_on:
+      - video-uploader-minio
+    networks:
+      - video-uploader-net
+
+  video-uploader-minio:
+    image: quay.io/minio/minio
+    container_name: video-uploader-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    env_file:
+      - local.env 
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY} 
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "9000:9000" 
+      - "9001:9001"
+    volumes:
+      - video-uploader-minio-data:/data
+    networks:
+      - video-uploader-net
+
+volumes:
+  video-uploader-minio-data:
+
+networks:
+  video-uploader-net:
+    driver: bridge
