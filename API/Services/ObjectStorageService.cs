@@ -14,7 +14,6 @@ namespace API.Services
         private readonly IMinioClient _minioClient;
         private readonly MinIOVariables _minioConfig;
 
-
         public MinIOService(IMinioClientFactory minioClientFactory, IOptions<MinIOVariables> minioOptions)
         {
             _minioClient = minioClientFactory.CreateClient();
@@ -23,24 +22,31 @@ namespace API.Services
 
         public async Task<string> Upload(IFormFile file)
         {
-            var uniqueName = Guid.NewGuid().ToString();
+            try
+            {
+                var bucketExists = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(_minioConfig.BucketName));
 
-            var bucketExists = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(_minioConfig.BucketName));
+                if (!bucketExists)
+                    await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(_minioConfig.BucketName));
 
-            if (!bucketExists)
-                await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(_minioConfig.BucketName));
+                var uniqueName = Guid.NewGuid().ToString();
 
-            using var stream = file.OpenReadStream();
-            var response = await _minioClient.PutObjectAsync(
-                new PutObjectArgs()
-                .WithBucket(_minioConfig.BucketName)
-                .WithObject(uniqueName)
-                .WithStreamData(stream)
-                .WithObjectSize(file.Length)
-                .WithContentType(file.ContentType)
-            );
+                using var stream = file.OpenReadStream();
+                var response = await _minioClient.PutObjectAsync(
+                    new PutObjectArgs()
+                    .WithBucket(_minioConfig.BucketName)
+                    .WithObject(uniqueName)
+                    .WithStreamData(stream)
+                    .WithObjectSize(file.Length)
+                    .WithContentType(file.ContentType)
+                );
 
-            return response.ObjectName;
+                return response.ObjectName;
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
     }
 
