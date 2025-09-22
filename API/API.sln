@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API", "API.csproj", "{83D61
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unit.Tests", "..\Unit.Tests\Unit.Tests.csproj", "{C38E9374-2F82-435C-94F1-E0B09E89B073}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Unit", "..\Unit.Tests\Tests.Unit.csproj", "{C38E9374-2F82-435C-94F1-E0B09E89B073}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

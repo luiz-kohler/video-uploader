@@ -12,6 +12,8 @@ using System.Net;
 
 namespace Unit.Tests.Services
 {
+    [Trait("MinIOService", "Unit")]
+    [Collection("UnitTests")]
     public class MinIOServiceTests
     {
         private readonly Faker _faker;
