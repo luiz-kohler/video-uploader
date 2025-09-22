@@ -1,4 +1,4 @@
-using video_uploader_api.Services;
+using API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -2,7 +2,7 @@
 using Minio;
 using Minio.DataModel.Args;
 
-namespace video_uploader_api.Services
+namespace API.Services
 {
     public interface IObjectStorageService
     {
@@ -24,7 +24,7 @@ namespace video_uploader_api.Services
         public async Task<string> Upload(IFormFile file)
         {
             var uniqueName = Guid.NewGuid().ToString();
-            
+
             var bucketExists = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(_minioConfig.BucketName));
 
             if (!bucketExists)

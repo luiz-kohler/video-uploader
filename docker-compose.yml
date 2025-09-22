@@ -3,7 +3,7 @@ version: '3.8'
 services:
   video-uploader-api:
     build:
-      context: ./video-uploader-api
+      context: .
       dockerfile: dockerfile
     container_name: video-uploader-api
     restart: unless-stopped

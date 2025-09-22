@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using video_uploader_api.Services;
+﻿using API.Services;
+using Microsoft.AspNetCore.Mvc;
 
-namespace video_uploader_api.Controllers
+namespace API.Controllers
 {
     [Route("videos")]
     public class VideoController : Controller

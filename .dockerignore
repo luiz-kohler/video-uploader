@@ -1,0 +1,27 @@
+# Ignore Git-related files
+.git
+.gitignore
+
+# Ignore IDE-specific files and directories
+.vs/
+.vscode/
+*.suo
+*.user
+*.bak
+
+# Ignore build output directories
+bin/
+obj/
+
+# Ignore test result files
+TestResults/
+
+# Ignore package directories
+packages/
+
+# Ignore solution-related files (unless specifically needed for restore)
+*.sln
+
+# Ignore temporary files
+*.tmp
+*.log
