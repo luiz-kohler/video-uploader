@@ -24,7 +24,7 @@ namespace Tests.Integration.Setup
         }
         public async Task InitializeAsync()
         {
-            await _minioContainer.StartAsync();   
+            await _minioContainer.StartAsync();
         }
 
         public new async Task DisposeAsync()
