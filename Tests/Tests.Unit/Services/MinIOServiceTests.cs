@@ -12,8 +12,8 @@ using System.Net;
 
 namespace Unit.Tests.Services
 {
-    [Trait("MinIOService", "Unit")]
-    [Collection("UnitTests")]
+    [Trait("Category", "Unit")]
+    [Collection("MinIOService")]
     public class MinIOServiceTests
     {
         private readonly Faker _faker;
@@ -39,7 +39,7 @@ namespace Unit.Tests.Services
         }
 
         [Fact]
-        public async Task Should_Upload_File_Successfully()
+        public async Task Upload_WithValidFile_ShouldReturnFileId()
         {
             var expectedResponse = _faker.Random.String();
             var bucketName = _minIOVaraibles.BucketName;
@@ -52,7 +52,6 @@ namespace Unit.Tests.Services
                         f.Random.Long(),
                         expectedResponse)
                 );
-
 
             var file = Substitute.For<IFormFile>();
 
@@ -68,7 +67,7 @@ namespace Unit.Tests.Services
         }
 
         [Fact]
-        public async Task Should_Return_Empty_String_When_Upload_File_Unsuccessfully()
+        public async Task Upload_WithInValidFile_ShouldReturnEmptyString()
         {
             var expectedResponse = string.Empty;
             var bucketName = _minIOVaraibles.BucketName;
