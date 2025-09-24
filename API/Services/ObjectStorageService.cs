@@ -24,7 +24,8 @@ namespace API.Services
         {
             try
             {
-                var bucketExists = await _minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(_minioConfig.BucketName));
+                var args = new BucketExistsArgs().WithBucket(_minioConfig.BucketName);
+                var bucketExists = await _minioClient.BucketExistsAsync(args);
 
                 if (!bucketExists)
                     await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(_minioConfig.BucketName));
@@ -43,7 +44,7 @@ namespace API.Services
 
                 return response.ObjectName;
             }
-            catch
+            catch(Exception ex)
             {
                 return string.Empty;
             }
