@@ -44,7 +44,7 @@ namespace API.Services
 
                 return response.ObjectName;
             }
-            catch(Exception ex)
+            catch
             {
                 return string.Empty;
             }
