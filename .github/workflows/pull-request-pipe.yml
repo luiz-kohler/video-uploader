@@ -8,10 +8,10 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     
-    services:
-      docker:
-        image: docker:dind
-        options: --privileged
+    # services:
+    #   docker:
+    #     image: docker:dind
+    #     options: --privileged
 
     steps:
     - name: Checkout code
@@ -40,5 +40,5 @@ jobs:
     - name: Run integration tests
       run: dotnet test --filter "Category=Integration"
       working-directory: ./API
-      env:
-        DOCKER_HOST: tcp://localhost:2375
+      # env:
+      #   DOCKER_HOST: tcp://localhost:2375
