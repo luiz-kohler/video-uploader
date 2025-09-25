@@ -25,19 +25,20 @@ jobs:
     - name: Setup Docker
       uses: docker/setup-buildx-action@v3
 
-    - name: Change to API directory
-      run: cd API
-
     - name: Restore dependencies
       run: dotnet restore
+      working-directory: ./API
 
     - name: Build the solution
       run: dotnet build --configuration Release --no-restore
+      working-directory: ./API
 
     - name: Run unit tests
       run: dotnet test --filter "Category=Unit" --verbosity normal
+      working-directory: ./API
 
     - name: Run integration tests
       run: dotnet test --filter "Category=Integration" --verbosity normal
+      working-directory: ./API
       env:
         DOCKER_HOST: tcp://localhost:2375
