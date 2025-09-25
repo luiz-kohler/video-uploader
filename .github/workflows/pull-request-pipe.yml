@@ -6,32 +6,4 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup .NET 9
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
-
-    - name: Setup Docker
-      uses: docker/setup-buildx-action@v3
-
-    - name: Restore dependencies
-      run: dotnet restore
-      working-directory: ./API
-
-    - name: Build the solution
-      run: dotnet build --configuration Release --no-restore
-      working-directory: ./API
-
-    - name: Run unit tests
-      run: dotnet test --filter "Category=Unit"
-      working-directory: ./API
-
-    - name: Run integration tests
-      run: dotnet test --filter "Category=Integration"
-      working-directory: ./API
+    uses: ./.github/workflows/build-and-test-job.yml
