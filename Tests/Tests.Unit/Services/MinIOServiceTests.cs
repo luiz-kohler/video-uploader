@@ -63,7 +63,7 @@ namespace Unit.Tests.Services
             await _client.Received(1).BucketExistsAsync(Arg.Any<BucketExistsArgs>());
             await _client.Received(1).PutObjectAsync(Arg.Any<PutObjectArgs>());
 
-            response.Should().NotBe(expectedResponse);
+            response.Should().Be(expectedResponse);
         }
 
         [Fact]
