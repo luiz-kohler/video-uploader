@@ -34,11 +34,11 @@ jobs:
       working-directory: ./API
 
     - name: Run unit tests
-      run: dotnet test --filter "Category=Unit" --verbosity normal
+      run: dotnet test --filter "Category=Unit"
       working-directory: ./API
 
     - name: Run integration tests
-      run: dotnet test --filter "Category=Integration" --verbosity normal
+      run: dotnet test --filter "Category=Integration"
       working-directory: ./API
       env:
         DOCKER_HOST: tcp://localhost:2375
