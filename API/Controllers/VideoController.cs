@@ -1,4 +1,5 @@
 ﻿using API.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -17,11 +18,20 @@ namespace API.Controllers
         public async Task<IActionResult> Upload(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                return BadRequest("Invalid file");
+                return BadRequest("File must be informed");
 
-            var fileName = await _objectStorageService.Upload(file);
+            if(!string.Equals(file.ContentType, "video/mp4", StringComparison.OrdinalIgnoreCase))
+                return BadRequest("File must be .mp4");
 
-            return Accepted(new { fileName });
+            try
+            {
+                var fileId = await _objectStorageService.Upload(file);
+                return Accepted(new { fileId });
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
         }
     }
 }

@@ -22,32 +22,25 @@ namespace API.Services
 
         public async Task<string> Upload(IFormFile file)
         {
-            try
-            {
-                var args = new BucketExistsArgs().WithBucket(_minioConfig.BucketName);
-                var bucketExists = await _minioClient.BucketExistsAsync(args);
+            var args = new BucketExistsArgs().WithBucket(_minioConfig.BucketName);
+            var bucketExists = await _minioClient.BucketExistsAsync(args);
 
-                if (!bucketExists)
-                    await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(_minioConfig.BucketName));
+            if (!bucketExists)
+                await _minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(_minioConfig.BucketName));
 
-                var uniqueName = Guid.NewGuid().ToString();
+            var uniqueName = Guid.NewGuid().ToString();
 
-                using var stream = file.OpenReadStream();
-                var response = await _minioClient.PutObjectAsync(
-                    new PutObjectArgs()
-                    .WithBucket(_minioConfig.BucketName)
-                    .WithObject(uniqueName)
-                    .WithStreamData(stream)
-                    .WithObjectSize(file.Length)
-                    .WithContentType(file.ContentType)
-                );
+            using var stream = file.OpenReadStream();
+            var response = await _minioClient.PutObjectAsync(
+                new PutObjectArgs()
+                .WithBucket(_minioConfig.BucketName)
+                .WithObject(uniqueName)
+                .WithStreamData(stream)
+                .WithObjectSize(file.Length)
+                .WithContentType(file.ContentType)
+            );
 
-                return response.ObjectName;
-            }
-            catch
-            {
-                return string.Empty;
-            }
+            return response.ObjectName;
         }
     }
 

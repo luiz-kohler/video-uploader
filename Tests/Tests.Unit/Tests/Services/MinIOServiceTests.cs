@@ -7,10 +7,9 @@ using Minio;
 using Minio.DataModel.Args;
 using Minio.DataModel.Response;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using System.Net;
 
-namespace Unit.Tests.Services
+namespace Tests.Unit.Tests.Services
 {
     [Trait("Category", "Unit")]
     [Collection("MinIOService")]
@@ -39,7 +38,7 @@ namespace Unit.Tests.Services
         }
 
         [Fact]
-        public async Task Upload_WithValidFile_ShouldReturnFileId()
+        public async Task Upload_WithValidFile_ShouldReturnFileIdSuccessfully()
         {
             var expectedResponse = _faker.Random.String();
             var bucketName = _minIOVaraibles.BucketName;
@@ -57,34 +56,6 @@ namespace Unit.Tests.Services
 
             _client.BucketExistsAsync(Arg.Any<BucketExistsArgs>()).Returns(false);
             _client.PutObjectAsync(Arg.Any<PutObjectArgs>()).Returns(putObjectResponse);
-
-            var response = await _service.Upload(file);
-
-            await _client.Received(1).BucketExistsAsync(Arg.Any<BucketExistsArgs>());
-            await _client.Received(1).PutObjectAsync(Arg.Any<PutObjectArgs>());
-
-            response.Should().Be(expectedResponse);
-        }
-
-        [Fact]
-        public async Task Upload_WithInValidFile_ShouldReturnEmptyString()
-        {
-            var expectedResponse = string.Empty;
-            var bucketName = _minIOVaraibles.BucketName;
-
-            var putObjectResponse = new Faker<PutObjectResponse>()
-                .CustomInstantiator(f =>
-                    new PutObjectResponse(f.PickRandom<HttpStatusCode>(),
-                        f.Random.String(),
-                        new Dictionary<string, string>(),
-                        f.Random.Long(),
-                        expectedResponse)
-                );
-
-            var file = Substitute.For<IFormFile>();
-
-            _client.BucketExistsAsync(Arg.Any<BucketExistsArgs>()).Returns(false);
-            _client.PutObjectAsync(Arg.Any<PutObjectArgs>()).Throws<Exception>();
 
             var response = await _service.Upload(file);
 
