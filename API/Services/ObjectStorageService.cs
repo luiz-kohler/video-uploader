@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
+using Minio.DataModel.Tags;
 
 namespace API.Services
 {
@@ -13,11 +14,16 @@ namespace API.Services
     {
         private readonly IMinioClient _minioClient;
         private readonly MinIOVariables _minioConfig;
+        private readonly Dictionary<string, string> _tags;
 
         public MinIOService(IMinioClientFactory minioClientFactory, IOptions<MinIOVariables> minioOptions)
         {
             _minioClient = minioClientFactory.CreateClient();
             _minioConfig = minioOptions.Value;
+            _tags = new Dictionary<string, string>
+            {
+                ["scan-status"] = "PENDING"
+            };
         }
 
         public async Task<string> Upload(IFormFile file)
@@ -38,6 +44,7 @@ namespace API.Services
                 .WithStreamData(stream)
                 .WithObjectSize(file.Length)
                 .WithContentType(file.ContentType)
+                .WithTagging(new Tagging(_tags, true))
             );
 
             return response.ObjectName;
