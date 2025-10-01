@@ -1,6 +1,5 @@
 ﻿using Bogus;
 using Microsoft.Extensions.DependencyInjection;
-using Minio;
 
 namespace Tests.Integration.Setup
 {
@@ -8,7 +7,6 @@ namespace Tests.Integration.Setup
     {
         private readonly IServiceScope _scope;
         protected readonly Faker _faker;
-        protected readonly IMinioClient _minioClient;
         protected readonly HttpClient _httpClient;
 
         protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
@@ -17,12 +15,6 @@ namespace Tests.Integration.Setup
 
             _httpClient = factory.HttpClient;
             _scope = factory.Services.CreateScope();
-
-            var minioFactory = _scope.ServiceProvider.GetService<IMinioClientFactory>();
-            if(minioFactory == null)
-                throw new ArgumentNullException(nameof(minioFactory));
-
-            _minioClient = minioFactory.CreateClient();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using API.Controllers;
+using API.Interfaces;
 using API.Services;
 using Bogus;
 using FluentAssertions;
