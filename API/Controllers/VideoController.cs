@@ -34,12 +34,12 @@ namespace API.Controllers
         }
 
         [HttpPut("pre-signed-url")]
-        public IActionResult PreSign()
+        public IActionResult PreSignedUrl()
         {
             try
             {
                 var key = Guid.NewGuid().ToString();    
-                var url = _objectStorageService.PreSignedUrl(key);
+                var url = _objectStorageService.GeneratePreSignedUrl(key);
 
                 return Ok(new { key, url });
             }

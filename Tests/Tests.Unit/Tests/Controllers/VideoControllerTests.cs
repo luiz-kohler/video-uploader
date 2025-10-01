@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using System;
 using Tests.Unit.Setup.Builders;
 
 namespace Tests.Unit.Tests.Controllers
@@ -44,8 +45,7 @@ namespace Tests.Unit.Tests.Controllers
             var acceptedResult = response as AcceptedResult;
             acceptedResult.Should().NotBeNull();
             acceptedResult.StatusCode.Should().Be(202);
-            response.Should().BeOfType<AcceptedResult>()
-            .Which.Value.Should().BeEquivalentTo(new { fileId });
+            acceptedResult.Value.Should().BeEquivalentTo(new { fileId });
         }
 
         [Fact]
@@ -106,6 +106,43 @@ namespace Tests.Unit.Tests.Controllers
             var response = await _controller.Upload(file);
 
             await _service.Received(1).Upload(Arg.Any<IFormFile>());
+
+            var objectResult = response.Should().BeOfType<ObjectResult>().Subject;
+            objectResult.StatusCode.Should().Be(500);
+            var problemDetails = objectResult.Value as ProblemDetails;
+            problemDetails.Should().NotBeNull();
+            problemDetails.Detail.Should().Be(expectedExceptionMessage);
+        }
+
+        [Fact]
+        public void PreSignedUrl_ShouldReturnUrlSuccessfully()
+        {
+            var expectedUrl = _faker.Random.String();
+            _service.GeneratePreSignedUrl(Arg.Any<string>()).Returns(expectedUrl);
+
+            var response = _controller.PreSignedUrl();
+
+            _service.Received(1).GeneratePreSignedUrl(Arg.Any<string>());
+
+            response.Should().NotBeNull();
+            var okResult = response as OkObjectResult;
+            okResult.Should().NotBeNull();
+            okResult.StatusCode.Should().Be(200);
+            okResult.Value.Should().NotBeNull(expectedUrl);
+            okResult.Value.ToString().Should().Contain(expectedUrl);
+        }
+
+        [Fact]
+        public void PreSignedUrl_WithServiceThrowingException_ShouldReturnInternalServerError()
+        {
+            var expectedExceptionMessage = _faker.Random.String();
+            var exception = new Exception(expectedExceptionMessage);
+
+            _service.GeneratePreSignedUrl(Arg.Any<string>()).Throws(exception);
+
+            var response = _controller.PreSignedUrl();
+
+            _service.Received(1).GeneratePreSignedUrl(Arg.Any<string>());
 
             var objectResult = response.Should().BeOfType<ObjectResult>().Subject;
             objectResult.StatusCode.Should().Be(500);

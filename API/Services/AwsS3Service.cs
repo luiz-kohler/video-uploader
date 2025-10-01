@@ -18,7 +18,7 @@ namespace API.Services
             _client = amazonS3;
         }
 
-        public string PreSignedUrl(string key)
+        public string GeneratePreSignedUrl(string key)
         {
             var request = new GetPreSignedUrlRequest
             {
