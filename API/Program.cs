@@ -1,12 +1,11 @@
 using API.Services;
-using System.Reactive;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddMinIOConfiguration(builder.Configuration);
-builder.Services.ConfigureMinIOClient(builder.Configuration.GetSection("MinIO").Get<MinIOVariables>()!);
-builder.Services.AddIObjectStorageService();
+builder.Services.AddAwsS3Settings(builder.Configuration);
+builder.Services.ConfigureAmazonS3();
+builder.Services.AddAwsS3Service();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

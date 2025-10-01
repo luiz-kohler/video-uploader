@@ -1,5 +1,4 @@
-﻿using API.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -20,7 +19,7 @@ namespace API.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest("File must be informed");
 
-            if(!string.Equals(file.ContentType, "video/mp4", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(file.ContentType, "video/mp4", StringComparison.OrdinalIgnoreCase))
                 return BadRequest("File must be .mp4");
 
             try

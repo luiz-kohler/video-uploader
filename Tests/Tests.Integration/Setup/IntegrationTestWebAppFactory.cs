@@ -1,10 +1,6 @@
-﻿using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
+﻿using DotNet.Testcontainers.Containers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
-using Minio;
-using Testcontainers.Minio;
 
 namespace Tests.Integration.Setup
 {
@@ -13,7 +9,7 @@ namespace Tests.Integration.Setup
         public HttpClient HttpClient { get; private set; } = null!;
         protected IContainer _minioContainer { get; set; } = MinioTestConfiguration.BuildConfiguredMinIOContainer();
 
-        protected override void ConfigureWebHost(IWebHostBuilder builder) 
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             MinioTestConfiguration.UpdateEnvVariables(_minioContainer);
         }
