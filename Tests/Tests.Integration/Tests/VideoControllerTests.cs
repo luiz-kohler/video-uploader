@@ -88,5 +88,22 @@ namespace Tests.Integration.Tests
             var responseContent = await response.Content.ReadAsStringAsync();
             responseContent.Should().Be(expectedMessage);
         }
+
+        [Fact]
+        public async Task PreSignedUrl_ShouldReturnOk()
+        {
+            using var formData = new MultipartFormDataContent();
+
+            var response = await _httpClient.PutAsync("/videos/pre-signed-url", formData);
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.Content.Should().NotBeNull();
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            responseContent.Should().NotBeEmpty();
+            responseContent.Should().Contain("url");
+            responseContent.Should().Contain("key");
+
+        }
     }
 }

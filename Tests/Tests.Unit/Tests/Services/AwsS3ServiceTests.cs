@@ -11,7 +11,7 @@ using NSubstitute.ReturnsExtensions;
 namespace Tests.Unit.Tests.Services
 {
     [Trait("Category", "Unit")]
-    [Collection("MinIOService")]
+    [Collection("AwsS3Service")]
     public class AwsS3ServiceTests
     {
         private readonly Faker _faker;
@@ -47,6 +47,21 @@ namespace Tests.Unit.Tests.Services
             await _client.Received(1).PutObjectAsync(Arg.Any<PutObjectRequest>());
 
             response.Should().NotBeNull(expectedResponse);
+        }
+
+        [Fact]
+        public void GeneratePreSignedUrl_ShouldReturnUrlSuccessfully()
+        {
+            var expectedResponse = _faker.Random.String();
+            var key = _faker.Random.String();
+
+            _client.GetPreSignedURL(Arg.Any<GetPreSignedUrlRequest>()).Returns(expectedResponse);
+
+            var response = _service.GeneratePreSignedUrl(key);
+
+            _client.Received(1).GetPreSignedURL(Arg.Any<GetPreSignedUrlRequest>());
+
+            response.Should().BeEquivalentTo(expectedResponse);
         }
     }
 }

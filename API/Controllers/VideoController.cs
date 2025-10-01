@@ -32,5 +32,21 @@ namespace API.Controllers
                 return Problem(ex.Message);
             }
         }
+
+        [HttpPut("pre-signed-url")]
+        public IActionResult PreSignedUrl()
+        {
+            try
+            {
+                var key = Guid.NewGuid().ToString();    
+                var url = _objectStorageService.GeneratePreSignedUrl(key);
+
+                return Ok(new { key, url });
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
     }
 }

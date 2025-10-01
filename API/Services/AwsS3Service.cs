@@ -18,6 +18,23 @@ namespace API.Services
             _client = amazonS3;
         }
 
+        public string GeneratePreSignedUrl(string key)
+        {
+            var request = new GetPreSignedUrlRequest
+            {
+                BucketName = _settings.BucketName,
+                Key = key,
+                Verb = HttpVerb.PUT,
+                Expires = DateTime.UtcNow.AddDays(1),
+                Protocol = Protocol.HTTP,
+                ContentType = "video/mp4",
+            };
+
+            request.Headers["x-amz-meta-scan-status"] = "PENDING";
+
+            return _client.GetPreSignedURL(request);
+        }
+
         public async Task<string> Upload(IFormFile file)
         {
             using var stream = file.OpenReadStream();
@@ -33,11 +50,7 @@ namespace API.Services
                 Key = key,
                 InputStream = stream,
                 ContentType = file.ContentType,
-                Metadata =
-                {
-                    ["scan-status"] = "PENDING",
-                    ["original-file-name"] = file.FileName
-                }
+                Metadata = { ["scan-status"] = "PENDING" }
             };
 
             await _client.PutObjectAsync(request);
