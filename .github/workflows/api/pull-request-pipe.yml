@@ -3,7 +3,8 @@ name: Pull Request Pipeline
 on:
   pull_request:
     branches: [ "main" ]
+    paths: ['API/**']
 
 jobs:
   build-and-test:
-    uses: ./.github/workflows/build-and-test-job.yml
+    uses: ./.github/workflows/api/build-and-test-job.yml
