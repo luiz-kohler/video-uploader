@@ -20,7 +20,7 @@ services:
   video-uploader-api-local:
     profiles: ["local"]
     build:
-      context: .
+      context: ./API
       dockerfile: dockerfile
     container_name: api-local
     restart: unless-stopped
