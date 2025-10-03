@@ -3,7 +3,7 @@ name: Pull Request Pipeline
 on:
   pull_request:
     branches: [ "main" ]
-    paths: ['API/**']
+    # paths: ['API/**']
 
 jobs:
   # build-and-test:
