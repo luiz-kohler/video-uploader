@@ -1,14 +1,12 @@
 ﻿using API.Controllers;
 using API.Interfaces;
-using API.Services;
 using Bogus;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using System;
-using Tests.Unit.Setup.Builders;
+using Presentation;
 
 namespace Tests.Unit.Tests.Controllers
 {
@@ -27,23 +25,24 @@ namespace Tests.Unit.Tests.Controllers
             _controller = new VideoController(_service);
         }
 
+        #region Upload Tests
+
         [Fact]
         public async Task Upload_WithValidFile_ShouldReturnFileIdSuccessfully()
         {
+            // Arrange
             var fileId = _faker.Random.String();
-
-            var file = new IFormFileBuilder()
-                .Build();
+            var file = CreateFormFile("video.mp4", "video/mp4", 1024);
 
             _service.Upload(Arg.Any<IFormFile>()).Returns(fileId);
 
+            // Act
             var response = await _controller.Upload(file);
 
+            // Assert
             await _service.Received(1).Upload(Arg.Any<IFormFile>());
 
-            response.Should().NotBeNull();
-            var acceptedResult = response as AcceptedResult;
-            acceptedResult.Should().NotBeNull();
+            var acceptedResult = response.Should().BeOfType<AcceptedResult>().Subject;
             acceptedResult.StatusCode.Should().Be(202);
             acceptedResult.Value.Should().BeEquivalentTo(new { fileId });
         }
@@ -51,104 +50,284 @@ namespace Tests.Unit.Tests.Controllers
         [Fact]
         public async Task Upload_WithNullFile_ShouldReturnBadRequest()
         {
-            var expectedMessage = "File must be informed";
-
+            // Arrange & Act
             var response = await _controller.Upload(null);
 
+            // Assert
             var badRequestResult = response.Should().BeOfType<BadRequestObjectResult>().Subject;
             badRequestResult.StatusCode.Should().Be(400);
-            badRequestResult.Value.Should().Be(expectedMessage);
+            badRequestResult.Value.Should().Be("File must be informed");
         }
 
         [Fact]
         public async Task Upload_WithEmptyFile_ShouldReturnBadRequest()
         {
-            var expectedMessage = "File must be informed";
+            // Arrange
+            var file = CreateFormFile("video.mp4", "video/mp4", 0);
 
-            var file = new IFormFileBuilder()
-                .WithLength(0)
-                .Build();
-
+            // Act
             var response = await _controller.Upload(file);
 
+            // Assert
             var badRequestResult = response.Should().BeOfType<BadRequestObjectResult>().Subject;
             badRequestResult.StatusCode.Should().Be(400);
-            badRequestResult.Value.Should().Be(expectedMessage);
+            badRequestResult.Value.Should().Be("File must be informed");
         }
 
         [Fact]
         public async Task Upload_WithNonMp4File_ShouldReturnBadRequest()
         {
-            var expectedMessage = "File must be .mp4";
+            // Arrange
+            var file = CreateFormFile("video.avi", "video/avi", 1024);
 
-            var file = new IFormFileBuilder()
-                .WithContentType("image/png")
-                .Build();
-
+            // Act
             var response = await _controller.Upload(file);
 
+            // Assert
             var badRequestResult = response.Should().BeOfType<BadRequestObjectResult>().Subject;
             badRequestResult.StatusCode.Should().Be(400);
-            badRequestResult.Value.Should().Be(expectedMessage);
+            badRequestResult.Value.Should().Be("File must be .mp4");
         }
 
         [Fact]
-        public async Task Upload_WithServiceThrowingException_ShouldReturnInternalServerError()
+        public async Task Upload_WithServiceThrowingException_ShouldThrowException()
         {
+            // Arrange
             var expectedExceptionMessage = _faker.Random.String();
             var exception = new Exception(expectedExceptionMessage);
-
-            var file = new IFormFileBuilder()
-                .Build();
+            var file = CreateFormFile("video.mp4", "video/mp4", 1024);
 
             _service.Upload(Arg.Any<IFormFile>()).Throws(exception);
 
-            var response = await _controller.Upload(file);
-
+            // Act & Assert
+            var actualException = await Assert.ThrowsAsync<Exception>(() => _controller.Upload(file));
+            actualException.Message.Should().Be(expectedExceptionMessage);
             await _service.Received(1).Upload(Arg.Any<IFormFile>());
-
-            var objectResult = response.Should().BeOfType<ObjectResult>().Subject;
-            objectResult.StatusCode.Should().Be(500);
-            var problemDetails = objectResult.Value as ProblemDetails;
-            problemDetails.Should().NotBeNull();
-            problemDetails.Detail.Should().Be(expectedExceptionMessage);
         }
 
+        #endregion
+
+        #region PreSigned Tests
+
         [Fact]
-        public void PreSignedUrl_ShouldReturnUrlSuccessfully()
+        public void PreSigned_WithValidRequest_ShouldReturnKeyAndUrl()
         {
-            var expectedUrl = _faker.Random.String();
-            _service.GeneratePreSignedUrl(Arg.Any<string>()).Returns(expectedUrl);
+            // Arrange
+            var fileName = _faker.System.FileName("mp4");
+            var expectedUrl = _faker.Internet.Url();
+            var request = new PreSignedDto(fileName);
 
-            var response = _controller.PreSignedUrl();
+            _service.GeneratePreSignedUrl(Arg.Any<string>(), fileName).Returns(expectedUrl);
 
-            _service.Received(1).GeneratePreSignedUrl(Arg.Any<string>());
+            // Act
+            var response = _controller.PreSigned(request);
 
-            response.Should().NotBeNull();
-            var okResult = response as OkObjectResult;
-            okResult.Should().NotBeNull();
+            // Assert
+            _service.Received(1).GeneratePreSignedUrl(Arg.Any<string>(), fileName);
+
+            var okResult = response.Should().BeOfType<OkObjectResult>().Subject;
             okResult.StatusCode.Should().Be(200);
             okResult.Value.Should().NotBeNull(expectedUrl);
             okResult.Value.ToString().Should().Contain(expectedUrl);
         }
 
         [Fact]
-        public void PreSignedUrl_WithServiceThrowingException_ShouldReturnInternalServerError()
+        public void PreSigned_WithServiceThrowingException_ShouldThrowException()
         {
+            // Arrange
+            var fileName = _faker.System.FileName("mp4");
             var expectedExceptionMessage = _faker.Random.String();
             var exception = new Exception(expectedExceptionMessage);
+            var request = new PreSignedDto(fileName);
 
-            _service.GeneratePreSignedUrl(Arg.Any<string>()).Throws(exception);
+            _service.GeneratePreSignedUrl(Arg.Any<string>(), fileName).Throws(exception);
 
-            var response = _controller.PreSignedUrl();
-
-            _service.Received(1).GeneratePreSignedUrl(Arg.Any<string>());
-
-            var objectResult = response.Should().BeOfType<ObjectResult>().Subject;
-            objectResult.StatusCode.Should().Be(500);
-            var problemDetails = objectResult.Value as ProblemDetails;
-            problemDetails.Should().NotBeNull();
-            problemDetails.Detail.Should().Be(expectedExceptionMessage);
+            // Act & Assert
+            var actualException = Assert.Throws<Exception>(() => _controller.PreSigned(request));
+            actualException.Message.Should().Be(expectedExceptionMessage);
+            _service.Received(1).GeneratePreSignedUrl(Arg.Any<string>(), fileName);
         }
+
+        #endregion
+
+        #region StartMultiPart Tests
+
+        [Fact]
+        public async Task StartMultiPart_WithValidRequest_ShouldReturnKeyAndUploadId()
+        {
+            // Arrange
+            var fileName = _faker.System.FileName("mp4");
+            var expectedUploadId = _faker.Random.String(20);
+            var request = new StartMultiPartDto(fileName);
+
+            _service.StartMultiPart(Arg.Any<string>(), fileName).Returns(expectedUploadId);
+
+            // Act
+            var response = await _controller.StartMultiPart(request);
+
+            // Assert
+            await _service.Received(1).StartMultiPart(Arg.Any<string>(), fileName);
+
+            var okResult = response.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.StatusCode.Should().Be(200);
+            okResult.Value.Should().NotBeNull();
+            okResult.Value.ToString().Should().Contain(expectedUploadId);
+        }
+
+        [Fact]
+        public async Task StartMultiPart_WithServiceThrowingException_ShouldThrowException()
+        {
+            // Arrange
+            var fileName = _faker.System.FileName("mp4");
+            var expectedExceptionMessage = _faker.Random.String();
+            var exception = new Exception(expectedExceptionMessage);
+            var request = new StartMultiPartDto(fileName);
+
+            _service.StartMultiPart(Arg.Any<string>(), fileName).Throws(exception);
+
+            // Act & Assert
+            var actualException = await Assert.ThrowsAsync<Exception>(() => _controller.StartMultiPart(request));
+            actualException.Message.Should().Be(expectedExceptionMessage);
+            await _service.Received(1).StartMultiPart(Arg.Any<string>(), fileName);
+        }
+
+        #endregion
+
+        #region PreSignedPart Tests
+
+        [Fact]
+        public void PreSignedPart_WithValidRequest_ShouldReturnKeyAndUrl()
+        {
+            // Arrange
+            var key = _faker.Random.String(10);
+            var fileName = _faker.System.FileName("mp4");
+            var uploadId = _faker.Random.String(20);
+            var partNumber = _faker.Random.Int(1, 10);
+            var expectedUrl = _faker.Internet.Url();
+            var request = new PreSignedPartDto(fileName, uploadId, partNumber);
+
+            _service.PreSignedPart(key, fileName, uploadId, partNumber).Returns(expectedUrl);
+
+            // Act
+            var response = _controller.PreSignedPart(key, request);
+
+            // Assert
+            _service.Received(1).PreSignedPart(key, fileName, uploadId, partNumber);
+
+            var okResult = response.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.StatusCode.Should().Be(200);
+            okResult.Value.Should().NotBeNull(expectedUrl);
+            okResult.Value.ToString().Should().Contain(expectedUrl);
+        }
+
+        [Fact]
+        public void PreSignedPart_WithServiceThrowingException_ShouldThrowException()
+        {
+            // Arrange
+            var key = _faker.Random.String(10);
+            var fileName = _faker.System.FileName("mp4");
+            var uploadId = _faker.Random.String(20);
+            var partNumber = _faker.Random.Int(1, 10);
+            var expectedExceptionMessage = _faker.Random.String();
+            var exception = new Exception(expectedExceptionMessage);
+            var request = new PreSignedPartDto(fileName, uploadId, partNumber);
+
+            _service.PreSignedPart(key, fileName, uploadId, partNumber).Throws(exception);
+
+            // Act & Assert
+            var actualException = Assert.Throws<Exception>(() => _controller.PreSignedPart(key, request));
+            actualException.Message.Should().Be(expectedExceptionMessage);
+            _service.Received(1).PreSignedPart(key, fileName, uploadId, partNumber);
+        }
+
+        #endregion
+
+        #region CompleteMultiPart Tests
+
+        [Fact]
+        public async Task CompleteMultiPart_WithValidRequest_ShouldReturnOk()
+        {
+            // Arrange
+            var key = _faker.Random.String(10);
+            var uploadId = _faker.Random.String(20);
+            var parts = new List<PartETagInfoDto>
+            {
+                new PartETagInfoDto(1, _faker.Random.String(10)),
+                new PartETagInfoDto(2, _faker.Random.String(10))
+            };
+            var request = new CompleteMultiPartDto(uploadId, parts);
+
+            // Act
+            var response = await _controller.CompleteMultiPart(key, request);
+
+            // Assert
+            await _service.Received(1).CompleteMultiPart(key, uploadId, parts);
+
+            var okResult = response.Should().BeOfType<OkResult>().Subject;
+            okResult.StatusCode.Should().Be(200);
+        }
+
+        [Fact]
+        public async Task CompleteMultiPart_WithServiceThrowingException_ShouldThrowException()
+        {
+            // Arrange
+            var key = _faker.Random.String(10);
+            var uploadId = _faker.Random.String(20);
+            var parts = new List<PartETagInfoDto>
+            {
+                new PartETagInfoDto(1, _faker.Random.String(10))
+            };
+            var expectedExceptionMessage = _faker.Random.String();
+            var exception = new Exception(expectedExceptionMessage);
+            var request = new CompleteMultiPartDto(uploadId, parts);
+
+            _service.CompleteMultiPart(key, uploadId, parts).Throws(exception);
+
+            // Act & Assert
+            var actualException = await Assert.ThrowsAsync<Exception>(() => _controller.CompleteMultiPart(key, request));
+            actualException.Message.Should().Be(expectedExceptionMessage);
+            await _service.Received(1).CompleteMultiPart(key, uploadId, parts);
+        }
+
+        [Fact]
+        public async Task CompleteMultiPart_WithEmptyParts_ShouldCallServiceWithEmptyList()
+        {
+            // Arrange
+            var key = _faker.Random.String(10);
+            var uploadId = _faker.Random.String(20);
+            var parts = new List<PartETagInfoDto>();
+            var request = new CompleteMultiPartDto(uploadId, parts);
+
+            // Act
+            var response = await _controller.CompleteMultiPart(key, request);
+
+            // Assert
+            await _service.Received(1).CompleteMultiPart(key, uploadId, parts);
+
+            var okResult = response.Should().BeOfType<OkResult>().Subject;
+            okResult.StatusCode.Should().Be(200);
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        private IFormFile CreateFormFile(string fileName, string contentType, long length)
+        {
+            var file = Substitute.For<IFormFile>();
+            file.FileName.Returns(fileName);
+            file.ContentType.Returns(contentType);
+            file.Length.Returns(length);
+
+            if (length > 0)
+            {
+                var stream = new MemoryStream(new byte[length]);
+                file.OpenReadStream().Returns(stream);
+            }
+
+            return file;
+        }
+
+        #endregion
     }
 }

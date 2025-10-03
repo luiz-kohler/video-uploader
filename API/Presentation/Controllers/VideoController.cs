@@ -1,5 +1,6 @@
 ﻿using API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Presentation;
 
 namespace API.Controllers
 {
@@ -22,31 +23,40 @@ namespace API.Controllers
             if (!string.Equals(file.ContentType, "video/mp4", StringComparison.OrdinalIgnoreCase))
                 return BadRequest("File must be .mp4");
 
-            try
-            {
-                var fileId = await _objectStorageService.Upload(file);
-                return Accepted(new { fileId });
-            }
-            catch (Exception ex)
-            {
-                return Problem(ex.Message);
-            }
+            var fileId = await _objectStorageService.Upload(file);
+            return Accepted(new { fileId });
         }
 
-        [HttpPut("pre-signed-url")]
-        public IActionResult PreSignedUrl()
+        [HttpPost("pre-signed")]
+        public IActionResult PreSigned([FromBody] PreSignedDto request)
         {
-            try
-            {
-                var key = Guid.NewGuid().ToString();    
-                var url = _objectStorageService.GeneratePreSignedUrl(key);
+            var key = Guid.NewGuid().ToString();
+            var url = _objectStorageService.GeneratePreSignedUrl(key, request.FileName);
 
-                return Ok(new { key, url });
-            }
-            catch (Exception ex)
-            {
-                return Problem(ex.Message);
-            }
+            return Ok(new { key, url });
+        }
+
+        [HttpPost("start-multipart")]
+        public async Task<IActionResult> StartMultiPart([FromRoute] StartMultiPartDto request)
+        {
+            var key = Guid.NewGuid().ToString();
+            var uploadId = await _objectStorageService.StartMultiPart(key, request.FileName);
+
+            return Ok(new { key, uploadId });
+        }
+
+        [HttpPost("{key}/pre-signed-part")]
+        public IActionResult PreSignedPart([FromRoute] string key, [FromBody] PreSignedPartDto request)
+        {
+            var url = _objectStorageService.PreSignedPart(key, request.FileName, request.UploadId, request.PartNumber);
+            return Ok(new { key, url });
+        }
+
+        [HttpPost("{key}/complete-multipart")]
+        public async Task<IActionResult> CompleteMultiPart([FromRoute] string key, [FromBody] CompleteMultiPartDto request)
+        {
+            await _objectStorageService.CompleteMultiPart(key, request.UploadId, request.Parts);
+            return Ok();
         }
     }
 }

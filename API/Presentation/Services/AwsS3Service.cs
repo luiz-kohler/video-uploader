@@ -3,7 +3,11 @@ using Amazon.S3.Model;
 using Amazon.S3.Util;
 using API.Interfaces;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic;
+using Presentation;
 using System.Net;
+using System.Numerics;
+using System.Runtime;
 
 namespace API.Services
 {
@@ -18,7 +22,7 @@ namespace API.Services
             _client = amazonS3;
         }
 
-        public string GeneratePreSignedUrl(string key)
+        public string GeneratePreSignedUrl(string key, string fileName)
         {
             var request = new GetPreSignedUrlRequest
             {
@@ -28,11 +32,75 @@ namespace API.Services
                 Expires = DateTime.UtcNow.AddDays(1),
                 Protocol = Protocol.HTTP,
                 ContentType = "video/mp4",
+                Metadata =
+                {
+                    ["scan-status"] = "PENDING",
+                    ["file-name"] = fileName
+                }
             };
 
-            request.Headers["x-amz-meta-scan-status"] = "PENDING";
-
             return _client.GetPreSignedURL(request);
+        }
+
+        public async Task<string> StartMultiPart(string key, string fileName)
+        {
+            var bucketExists = await BucketExists();
+            if (!bucketExists)
+                await CreateBucket();
+
+            var request = new InitiateMultipartUploadRequest
+            {
+                BucketName = _settings.BucketName,
+                Key = key,
+                ContentType = "video/mp4",
+                Metadata =
+                {
+                    ["scan-status"] = "PENDING",
+                    ["file-name"] = fileName
+                }
+            };
+
+            var response = await _client.InitiateMultipartUploadAsync(request);
+
+            return response.UploadId;
+        }
+
+        public string PreSignedPart(string key, string fileName, string uploadId, int partNumber)
+        {
+            var request = new GetPreSignedUrlRequest
+            {
+                BucketName = _settings.BucketName,
+                Key = key,
+                Verb = HttpVerb.PUT,
+                Expires = DateTime.UtcNow.AddMinutes(15),
+                Protocol = Protocol.HTTP,
+                UploadId = uploadId,
+                PartNumber = partNumber
+            };
+
+            string preSignedUrl = _client.GetPreSignedURL(request);
+
+            return preSignedUrl;
+        }
+
+        public async Task CompleteMultiPart(string key, string uploadId, List<PartETagInfoDto> parts)
+        {
+            var bucketExists = await BucketExists();
+            if (!bucketExists)
+                await CreateBucket();
+
+            var request = new CompleteMultipartUploadRequest
+            {
+                BucketName = _settings.BucketName,
+                Key = key,
+                UploadId = uploadId,
+                PartETags = parts.Select(part => new PartETag(part.PartNumber, part.ETag)).ToList()
+            };
+
+            var response = await _client.CompleteMultipartUploadAsync(request);
+
+            if (response.HttpStatusCode != HttpStatusCode.OK || string.IsNullOrEmpty(response.Location))
+                throw new Exception("Could not complete multipart");
         }
 
         public async Task<string> Upload(IFormFile file)
@@ -50,7 +118,11 @@ namespace API.Services
                 Key = key,
                 InputStream = stream,
                 ContentType = file.ContentType,
-                Metadata = { ["scan-status"] = "PENDING" }
+                Metadata =
+                {
+                    ["scan-status"] = "PENDING",
+                    ["file-name"] = file.FileName
+                }
             };
 
             await _client.PutObjectAsync(request);
