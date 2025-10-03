@@ -3,44 +3,8 @@ name: Pull Request Pipeline
 on:
   pull_request:
     branches: [ "main" ]
-    # paths: ['API/**']
+    paths: ['API/**']
 
 jobs:
-  # build-and-test:
-  #   uses: ./.github/workflows/api/build-and-test-job.yml
-    build-and-test:
-    name: "Build and Test"
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.set-output.outputs.result }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET 9
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 9.0.x
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Restore dependencies
-        run: dotnet restore
-        working-directory: ./API
-
-      - name: Build the solution
-        run: dotnet build --configuration Release --no-restore
-        working-directory: ./API
-
-      - name: Run unit tests
-        run: dotnet test --filter "Category=Unit"
-        working-directory: ./API
-
-      - name: Run integration tests
-        run: dotnet test --filter "Category=Integration"
-        working-directory: ./API
-
-      - name: Set output
-        id: set-output
-        run: echo "result=success" >> $GITHUB_OUTPUT
+  build-and-test:
+    uses: ./.github/workflows/api/build-and-test-job.yml
