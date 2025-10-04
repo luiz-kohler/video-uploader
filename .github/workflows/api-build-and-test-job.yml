@@ -1,4 +1,4 @@
-name: Shared Build and Test Jobs
+name: Shared API Build and Test Jobs
 
 on:
   workflow_call: 

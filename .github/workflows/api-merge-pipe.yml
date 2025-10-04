@@ -1,4 +1,4 @@
-name: Merge Pipeline
+name: Merge API Pipeline
 
 on:
   push:

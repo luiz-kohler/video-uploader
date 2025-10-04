@@ -1,0 +1,9 @@
+name: Pull Request Frontend Pipeline
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths: ['web/**']
+
+jobs:
+
