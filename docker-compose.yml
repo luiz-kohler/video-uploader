@@ -38,10 +38,10 @@ services:
     networks:
       - video-uploader-net
 
-  video-uploader-api-docker:
+  video-uploader-api-docker-hub:
     profiles: ["docker"]
     image: luizfelipekohler/video-uploader-api
-    container_name: api-docker
+    container_name: api-docker-hub
     restart: unless-stopped
     ports:
       - "5001:8080" 
@@ -57,14 +57,25 @@ services:
     networks:
       - video-uploader-net
 
-  video-uploader-front:
+  video-uploader-web-local:
+    profiles: ["local"]
     build:
       context: ./web
       dockerfile: dockerfile
-    container_name: front
+    container_name: web-local
     restart: unless-stopped
     ports:
       - "3000:3000" 
+    networks:
+      - video-uploader-net
+
+  video-uploader-web-docker-hub:
+    profiles: ["docker"]
+    image: luizfelipekohler/video-uploader-web
+    container_name: web-docker-hub
+    restart: unless-stopped
+    ports:
+      - "3001:3000" 
     networks:
       - video-uploader-net
 
