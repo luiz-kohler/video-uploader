@@ -57,6 +57,17 @@ services:
     networks:
       - video-uploader-net
 
+  video-uploader-front:
+    build:
+      context: ./web
+      dockerfile: dockerfile
+    container_name: front
+    restart: unless-stopped
+    ports:
+      - "3000:3000" 
+    networks:
+      - video-uploader-net
+
 volumes:
   video-uploader-minio-data:
 
