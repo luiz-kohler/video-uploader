@@ -1,4 +1,4 @@
-import { api } from '../api';
+import { api } from '../../base-api';
 import { 
     CompleteMultiPartRequest, 
     PreSignedPartRequest, 

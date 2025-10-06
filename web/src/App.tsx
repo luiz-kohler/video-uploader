@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import './global.css'
 import { Button, Grid, LinearProgress, Typography, styled } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { StartMultiPart, PreSignedPart, CompleteMultiPart } from './api/videos/index'
+import { StartMultiPart, PreSignedPart, CompleteMultiPart } from './services/video-uploader-api/videos/index'
 import {
   StartMultiPartRequest,
   StartMultiPartResponse,
   PreSignedPartResponse,
   CompleteMultiPartRequest,
   PartETagInfo
-} from './api/videos/models'
+} from './services/video-uploader-api/videos/models'
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -179,7 +179,7 @@ function App() {
             sx={{ marginBottom: 1 }}
           />
           <Typography variant="body2" align="center">
-            Uploading... {Math.round(uploadProgress)}%
+            {Math.round(uploadProgress)}%
           </Typography>
         </div>
       )}
