@@ -1,7 +1,7 @@
 import axios from 'axios'
 //import { toast } from 'react-toastify';
 
-var porta = '5000';
+var porta = '5057';
 
 const api = axios.create({
     baseURL: `http://localhost:${porta}`

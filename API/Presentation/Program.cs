@@ -7,12 +7,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAwsS3Settings(builder.Configuration);
 builder.Services.ConfigureAmazonS3();
 builder.Services.AddAwsS3Service();
-
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.UseCors(option => option
+    .SetIsOriginAllowed(_ => true)
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()
+);
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.

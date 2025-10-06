@@ -37,7 +37,7 @@ namespace API.Controllers
         }
 
         [HttpPost("start-multipart")]
-        public async Task<IActionResult> StartMultiPart([FromRoute] StartMultiPartDto request)
+        public async Task<IActionResult> StartMultiPart([FromBody] StartMultiPartDto request)
         {
             var key = Guid.NewGuid().ToString();
             var uploadId = await _objectStorageService.StartMultiPart(key, request.FileName);

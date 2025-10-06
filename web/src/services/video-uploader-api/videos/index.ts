@@ -1,4 +1,4 @@
-import { api } from '../api';
+import { api } from '../../base-api';
 import { 
     CompleteMultiPartRequest, 
     PreSignedPartRequest, 
@@ -12,11 +12,11 @@ export const StartMultiPart = async (request : StartMultiPartRequest) => {
 }
 
 export const PreSignedPart = async (request: PreSignedPartRequest) => {
-    return api.post(`${VIDEOS_CONTROLLER}/${request.key}/pre-signed-part`)
+    return api.post(`${VIDEOS_CONTROLLER}/${request.key}/pre-signed-part`, request)
         .then(res => res)
 }
 
 export const CompleteMultiPart = async (request: CompleteMultiPartRequest) => {
-    return api.post(`${VIDEOS_CONTROLLER}/${request.key}/complete-multipart`)
+    return api.post(`${VIDEOS_CONTROLLER}/${request.key}/complete-multipart`, request)
         .then(res => res)
 }
