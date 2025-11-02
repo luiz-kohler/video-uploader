@@ -3,7 +3,7 @@ name: Merge API Pipeline
 on:
   push:
     branches: [ "main" ]
-    paths: ['API/**']
+    paths: ['video-uploader-api/**']
 
 jobs:
   build-and-test:
@@ -32,6 +32,6 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./API
+          context: ./video-uploader-api
           push: true
           tags: luizfelipekohler/video-uploader-api

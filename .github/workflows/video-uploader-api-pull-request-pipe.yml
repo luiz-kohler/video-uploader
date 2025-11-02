@@ -3,7 +3,7 @@ name: Pull Request API Pipeline
 on:
   pull_request:
     branches: [ "main" ]
-    paths: ['API/**']
+    paths: ['video-uploader-api/**']
 
 jobs:
   build-and-test:

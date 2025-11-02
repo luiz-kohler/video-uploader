@@ -27,19 +27,19 @@ jobs:
 
       - name: Restore dependencies
         run: dotnet restore
-        working-directory: ./API
+        working-directory: ./video-uploader-api
 
       - name: Build the solution
         run: dotnet build --configuration Release --no-restore
-        working-directory: ./API
+        working-directory: ./video-uploader-api
 
       - name: Run unit tests
         run: dotnet test --filter "Category=Unit"
-        working-directory: ./API
+        working-directory: ./video-uploader-api
 
       - name: Run integration tests
         run: dotnet test --filter "Category=Integration"
-        working-directory: ./API
+        working-directory: ./video-uploader-api
 
       - name: Set output
         id: set-output
