@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-test:
-    uses: ./.github/workflows/api-build-and-test-job.yml
+    uses: ./.github/workflows/video-uploader-api-build-and-test-job.yml
 
   built-and-publish:
     runs-on: ubuntu-latest
