@@ -1,16 +1,22 @@
-using API.Services;
 using Presentation;
+using Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddAwsS3Settings(builder.Configuration);
-builder.Services.ConfigureAmazonS3();
-builder.Services.AddAwsS3Service();
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.ConfigureS3(builder.Configuration);
 
+builder.Services.AddControllers();
+builder.Services.AddControllers(options => { options.Filters.Add<ModelValidationFilter>(); });
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Video uploader API",
+        Description = "API for uploading files to S3/MinIO",
+    });
+});
 var app = builder.Build();
 
 app.UseCors(option => option
@@ -22,10 +28,14 @@ app.UseCors(option => option
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "File Upload API v1");
+        c.RoutePrefix = "swagger"; 
+    });
 }
 
 app.UseHttpsRedirection();
@@ -40,7 +50,4 @@ public partial class Program;
 
 // TODO:
 // MAX LIMIT OF FILE SIZE
-// LIFECYCLE FOR MULTIPART OF 7 DAYS IN DOCKER-COMPOSE
-// VALIDATIONS
-// USING THE CORRECT RETURN OF S3 API AND NOT GENERIC ONES
-// TEST
+// SET LIFECYCLE FOR MULTIPART
