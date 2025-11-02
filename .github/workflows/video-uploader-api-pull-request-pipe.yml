@@ -1,0 +1,10 @@
+name: Pull Request API Pipeline
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths: ['video-uploader-api/**']
+
+jobs:
+  build-and-test:
+    uses: ./.github/workflows/video-uploader-api-build-and-test-job.yml
