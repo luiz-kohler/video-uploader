@@ -7,30 +7,28 @@ namespace API.Controllers
     [Route("videos")]
     public class VideoController : Controller
     {
-        private readonly IS3Service _s3Service;
+        private readonly IVideoUploaderService _service;
 
-        public VideoController(IS3Service s3Service) { _s3Service = s3Service; }
+        public VideoController(IVideoUploaderService videoUploaderService) { _service = videoUploaderService; }
 
         [HttpPost("start-multipart")]
-        public async Task<IActionResult> StartMultiPart([FromBody] StartMultiPartDto request)
+        public async Task<ActionResult<StartMultiPartResponse>> StartMultiPart([FromBody] StartMultiPartRequest request)
         {
-            var key = Guid.NewGuid().ToString();
-            var uploadId = await _s3Service.StartMultiPart(key, request.FileName);
-
-            return Ok(new { key, uploadId });
+            var response = await _service.StartMultiPart(request);
+            return Ok(response);
         }
 
         [HttpPost("{key}/pre-signed-part")]
-        public IActionResult PreSignedPart([FromRoute] string key, [FromBody] PreSignedPartDto request)
+        public ActionResult<PreSignedPartResponse> PreSignedPart([FromRoute] string key, [FromBody] PreSignedPartRequest request)
         {
-            var url = _s3Service.PreSignedPart(key, request.UploadId, request.PartNumber);
-            return Ok(new { key, url });
+            var response = _service.PreSignedPart(key, request);
+            return Ok(response);
         }
 
         [HttpPost("{key}/complete-multipart")]
-        public async Task<IActionResult> CompleteMultiPart([FromRoute] string key, [FromBody] CompleteMultiPartDto request)
+        public async Task<ActionResult> CompleteMultiPart([FromRoute] string key, [FromBody] CompleteMultiPartRequest request)
         {
-            await _s3Service.CompleteMultiPart(key, request.UploadId, request.Parts);
+            await _service.CompleteMultiPart(key, request);
             return Ok();
         }
     }

@@ -4,7 +4,8 @@ using Service.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.ConfigureS3(builder.Configuration);
+builder.Services.AddS3Service(builder.Configuration);
+builder.Services.AddVideoUploaderService();
 
 builder.Services.AddControllers();
 builder.Services.AddControllers(options => { options.Filters.Add<ModelValidationFilter>(); });

@@ -1,9 +1,6 @@
 ﻿using FluentAssertions;
-using Presentation;
 using Service;
 using System.Net;
-using System.Net.Http.Headers;
-using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
 using Tests.Integration.Setup;
@@ -25,7 +22,7 @@ namespace Tests.Integration.Tests
         {
             // Arrange
             var fileName = _faker.System.FileName("mp4");
-            var request = new StartMultiPartDto(fileName);
+            var request = new StartMultiPartRequest(fileName);
             var jsonContent = new StringContent(
                 JsonSerializer.Serialize(request),
                 Encoding.UTF8,
@@ -61,7 +58,7 @@ namespace Tests.Integration.Tests
             var uploadId = _faker.Random.AlphaNumeric(20);
             var partNumber = _faker.Random.Int(1, 10);
 
-            var request = new PreSignedPartDto(uploadId, partNumber);
+            var request = new PreSignedPartRequest(uploadId, partNumber);
             var jsonContent = new StringContent(
                 JsonSerializer.Serialize(request),
                 Encoding.UTF8,
@@ -80,7 +77,6 @@ namespace Tests.Integration.Tests
             });
 
             result.Should().NotBeNull();
-            result!.Key.Should().Be(key);
             result.Url.Should().NotBeNullOrEmpty();
             result.Url.Should().StartWith("http");
         }
@@ -95,7 +91,7 @@ namespace Tests.Integration.Tests
             // Arrange 
             var five_mega_bytes = 10 << 20;
             var fileName = _faker.System.FileName("mp4");
-            var startRequest = new StartMultiPartDto(fileName);
+            var startRequest = new StartMultiPartRequest(fileName);
             var startJsonContent = new StringContent(
                 JsonSerializer.Serialize(startRequest),
                 Encoding.UTF8,
@@ -109,7 +105,7 @@ namespace Tests.Integration.Tests
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             var key = startResult?.Key;
-            var uploadId = startResult?.UploadId; 
+            var uploadId = startResult?.UploadId;
 
             var parts = new List<PartETagInfoDto>();
             var partData = new[]
@@ -120,7 +116,7 @@ namespace Tests.Integration.Tests
 
             foreach (var part in partData)
             {
-                var presignedRequest = new PreSignedPartDto(uploadId, part.Number);
+                var presignedRequest = new PreSignedPartRequest(uploadId, part.Number);
                 var presignedJsonContent = new StringContent(
                     JsonSerializer.Serialize(presignedRequest),
                     Encoding.UTF8,
@@ -157,7 +153,7 @@ namespace Tests.Integration.Tests
             }
 
             // Act 
-            var completeRequest = new CompleteMultiPartDto(uploadId, parts);
+            var completeRequest = new CompleteMultiPartRequest(uploadId, parts);
             var completeJsonContent = new StringContent(
                 JsonSerializer.Serialize(completeRequest),
                 Encoding.UTF8,
@@ -185,7 +181,7 @@ namespace Tests.Integration.Tests
             var uploadId = _faker.Random.AlphaNumeric(20);
             var emptyParts = new List<PartETagInfoDto>();
 
-            var request = new CompleteMultiPartDto(uploadId, emptyParts);
+            var request = new CompleteMultiPartRequest(uploadId, emptyParts);
             var jsonContent = new StringContent(
                 JsonSerializer.Serialize(request),
                 Encoding.UTF8,
@@ -197,14 +193,6 @@ namespace Tests.Integration.Tests
             // Assert
             response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.InternalServerError);
         }
-
-        #endregion
-
-        #region Response DTOs for deserialization
-
-        private record PreSignedResponse(string Key, string Url);
-        private record StartMultiPartResponse(string Key, string UploadId);
-        private record PreSignedPartResponse(string Key, string Url);
 
         #endregion
     }

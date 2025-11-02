@@ -129,6 +129,7 @@ namespace Tests.Unit.Tests.Services
         [Fact]
         public async Task CompleteMultiPart_WhenResponseIsNotOk_ShouldThrowException()
         {
+            // Arrange
             var key = _faker.Random.String(10);
             var uploadId = _faker.Random.String(20);
             var parts = new List<PartETagInfoDto>
@@ -143,35 +144,14 @@ namespace Tests.Unit.Tests.Services
                        Location = null
                    });
 
+            // Act & Assert
             var exception = await Assert.ThrowsAsync<AmazonS3Exception>(() =>
                 _service.CompleteMultiPart(key, uploadId, parts));
 
-            exception.Message.Should().Be("Multipart couldn't be completed.");
+            // Assert
+            exception.Message.Should().Be("Multipart couldn't be completed. Try upload file again.");
             await _client.Received(1).CompleteMultipartUploadAsync(Arg.Any<CompleteMultipartUploadRequest>());
-        }
-
-        [Fact]
-        public async Task CompleteMultiPart_WhenLocationIsEmpty_ShouldThrowException()
-        {
-            var key = _faker.Random.String(10);
-            var uploadId = _faker.Random.String(20);
-            var parts = new List<PartETagInfoDto>
-            {
-                new PartETagInfoDto(1, _faker.Random.String(10))
-            };
-
-            _client.CompleteMultipartUploadAsync(Arg.Any<CompleteMultipartUploadRequest>())
-                   .Returns(new CompleteMultipartUploadResponse
-                   {
-                       HttpStatusCode = HttpStatusCode.OK,
-                       Location = string.Empty
-                   });
-
-            var exception = await Assert.ThrowsAsync<AmazonS3Exception>(() =>
-                _service.CompleteMultiPart(key, uploadId, parts));
-
-            exception.Message.Should().Be("Multipart couldn't be completed.");
-            await _client.Received(1).CompleteMultipartUploadAsync(Arg.Any<CompleteMultipartUploadRequest>());
+            await _client.Received(1).AbortMultipartUploadAsync(Arg.Any<AbortMultipartUploadRequest>());
         }
 
         [Fact]

@@ -1,5 +1,4 @@
 ﻿using Amazon.Runtime;
-using Amazon.Runtime.Internal.Util;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
@@ -82,7 +81,22 @@ namespace Service.Services
             var response = await _client.CompleteMultipartUploadAsync(request);
 
             if (response.HttpStatusCode != HttpStatusCode.OK || string.IsNullOrEmpty(response.Location))
-                throw new AmazonS3Exception("Multipart couldn't be completed.", ErrorType.Sender, string.Empty, string.Empty, response.HttpStatusCode);
+            {
+                await AbortMultipartUpload(key, uploadId);
+                throw new AmazonS3Exception("Multipart couldn't be completed. Try upload file again.", ErrorType.Sender, string.Empty, string.Empty, response.HttpStatusCode);
+            }
+        }
+
+        private async Task AbortMultipartUpload(string key, string uploadId)
+        {
+            var abortRequest = new AbortMultipartUploadRequest
+            {
+                BucketName = _settings.BucketName,
+                Key = key,
+                UploadId = uploadId
+            };
+
+            await _client.AbortMultipartUploadAsync(abortRequest);
         }
 
         private async Task<bool> BucketExists()
@@ -139,16 +153,16 @@ namespace Service.Services
             });
         }
 
-        private static void AddS3Service(this IServiceCollection services)
+        private static void AddS3ServiceDI(this IServiceCollection services)
         {
             services.AddSingleton<IS3Service, S3Service>();
         }
 
-        public static void ConfigureS3(this IServiceCollection services, IConfiguration configuration)
+        public static void AddS3Service(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddS3Settings(configuration);
             services.ConfigureS3Client();
-            services.AddS3Service();
+            services.AddS3ServiceDI();
             services.AddHostedService<S3ServiceInitializer>();
         }
     }
